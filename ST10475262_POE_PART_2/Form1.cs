@@ -24,15 +24,31 @@ namespace ST10475262_POE_PART_2
         public Form1()
         {
             InitializeComponent();
-            MessageBox.Show("Connected");
-            SetupDelegateList();   //fill the delegate list with all topic methods
+            test();
+            /*SetupDelegateList();   //fill the delegate list with all topic methods
             SetupTypingTimer();    //configure the typing timer
             PlayStartupSound();    //play  cypherr.wav
-            ShowWelcomeMessage();  //display the welcome message then prompt for name
+            ShowWelcomeMessage();  //display the welcome message then prompt for name*/
         }
 
         
-        
+        public void test()
+        {
+            TaskItem task = new TaskItem();
+
+            task.Title = "Test Task";
+
+            task.Description =
+                "Testing from WinForms";
+
+            task.ReminderDate = null;
+
+            task.IsCompleted = false;
+
+            db.AddTask(task);
+
+            MessageBox.Show("Task Added");
+        }
 
         private void SetupDelegateList()
         {
