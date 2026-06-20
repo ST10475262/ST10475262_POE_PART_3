@@ -11,14 +11,16 @@ namespace ST10475262_POE_PART_2
     {
         string connectionString =@"Server=(localdb)\MSSQLLocalDB; Database=PART_3_DATABASE; Trusted_Connection=True;";
 
-        public void AddTask(TaskItem task)
+        public int AddTask(TaskItem task)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
                 string query = @"INSERT INTO Task(Title, Description, ReminderDate, IsCompleted)
-                                 VALUES(@Title, @Description,@ReminderDate, @IsCompleted)";
+                                 VALUES(@Title, @Description,@ReminderDate, @IsCompleted)
+                                 
+                                 SELECT SCOPE_IDENTITY();";
 
                 SqlCommand cmd = new SqlCommand(query, conn);
 
@@ -26,7 +28,10 @@ namespace ST10475262_POE_PART_2
                 cmd.Parameters.AddWithValue("@Description",task.Description);
                 cmd.Parameters.AddWithValue("@ReminderDate",task.ReminderDate == null? DBNull.Value: task.ReminderDate);
                 cmd.Parameters.AddWithValue("@IsCompleted",task.IsCompleted);
-                cmd.ExecuteNonQuery();
+
+                int taskId = Convert.ToInt32(cmd.ExecuteScalar());
+
+                return taskId;
             }
         }
 
@@ -66,6 +71,26 @@ namespace ST10475262_POE_PART_2
             }
 
             return tasks;
+        }
+
+        public void UpdateReminder(int taskId, DateTime reminderDate)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"UPDATE Task 
+                                 SET ReminderDate = @ReminderDate 
+                                 WHERE Id = @Id";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+
+                cmd.Parameters.AddWithValue("@ReminderDate",reminderDate);
+
+                cmd.Parameters.AddWithValue("@Id",taskId);
+
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }

@@ -5,30 +5,32 @@ namespace ST10475262_POE_PART_2
     public partial class Form1 : Form
     {
         TasksDatabase db = new TasksDatabase();
+        //remembering the tasks added
+        bool waitingForReminder = false;
+        int lastTaskId = -1;
 
-        List<ResponseDelegate> responseHandlers = new List<ResponseDelegate>(); //list of delegates pointing to all our response methods
+        List<ResponseDelegate> responseHandlers = new List<ResponseDelegate>(); 
 
-        System.Windows.Forms.Timer typingTimer = new System.Windows.Forms.Timer(); //timer that fires every 18ms
-        string fullTypingText = "";   //the full response text we are currently typing out
-        int typingIndex = 0;    //how many characters have been revealed so far
-        Label typingLabel = null; //direct reference to the label currently being typed into
-        bool isTyping = false; //true while the bot is mid-response
+        System.Windows.Forms.Timer typingTimer = new System.Windows.Forms.Timer();
+        string fullTypingText = "";   
+        int typingIndex = 0;    
+        Label typingLabel = null;
+        bool isTyping = false; 
 
 
-        bool waitingForName = false; //true while waiting for the user to type their name
-        bool startupDone = false; //true once the name has been collected and normal chat can begin
-        bool askNameAfterTyping = false; //tells the typing timer to trigger the name prompt when it finishes
-        bool exitAfterTyping = false; //tells the typing timer to keep input disabled after a goodbye message
+        bool waitingForName = false; 
+        bool startupDone = false; 
+        bool askNameAfterTyping = false; 
+        bool exitAfterTyping = false; 
 
 
         public Form1()
         {
             InitializeComponent();
-            test();
-            /*SetupDelegateList();   //fill the delegate list with all topic methods
+            SetupDelegateList();   //fill the delegate list with all topic methods
             SetupTypingTimer();    //configure the typing timer
             PlayStartupSound();    //play  cypherr.wav
-            ShowWelcomeMessage();  //display the welcome message then prompt for name*/
+            ShowWelcomeMessage();  //display the welcome message then prompt for name
         }
 
         
@@ -80,59 +82,58 @@ namespace ST10475262_POE_PART_2
 
         private void SetupTypingTimer() //configures the timer used for the typing effect
         {
-            typingTimer.Interval = 18;                                      //fire every 18ms - same feel as Thread.Sleep(25) from Part 1
-            typingTimer.Tick += new EventHandler(TypingTimer_Tick);         //call TypingTimer_Tick on every tick
+            typingTimer.Interval = 18;
+            typingTimer.Tick += new EventHandler(TypingTimer_Tick);
         }
 
-        private void TypingTimer_Tick(object sender, EventArgs e) //called every 18ms while the bot is typing
+        private void TypingTimer_Tick(object sender, EventArgs e) 
         {
             if (typingIndex < fullTypingText.Length) //still characters left to reveal
             {
                 typingLabel.Text = fullTypingText.Substring(0, typingIndex + 1); //reveal one more character into the label
                 typingIndex++;                                                    //move to the next character position
-                ScrollToBottom();                                                 //keep the chat scrolled to the bottom as text grows
+                ScrollToBottom();
             }
             else //all characters have been revealed
             {
-                typingTimer.Stop(); //stop the timer
+                typingTimer.Stop(); 
                 isTyping = false;   //mark that typing has finished
 
-                if (exitAfterTyping) //if this was a goodbye message, keep input disabled permanently
+                if (exitAfterTyping)
                 {
                     btnSend.Enabled = false;
                     txtInput.Enabled = false;
                     return;
                 }
 
-                if (askNameAfterTyping) //if we need to show the name prompt next
+                if (askNameAfterTyping) 
                 {
-                    askNameAfterTyping = false; //clear the flag so it doesn't trigger again
-                    AskForName();               //show the name prompt
+                    askNameAfterTyping = false; 
+                    AskForName();
                     return;
                 }
 
-                //normal case - re-enable input so the user can send their next message
+               
                 btnSend.Enabled = true;
                 txtInput.Enabled = true;
-                txtInput.Focus(); //put the cursor back in the input box automatically
+                txtInput.Focus(); 
             }
         }
 
-        private void StartTypingEffect(Label label, string fullText) //starts the character-by-character typing effect on a given label
+        private void StartTypingEffect(Label label, string fullText) 
         {
-            typingLabel = label;    //store a reference to the label we will be updating each tick
-            fullTypingText = fullText; //store the full text to be typed out
-            typingIndex = 0;        //start from the very first character
-            isTyping = true;     //mark that we are currently typing
+            typingLabel = label;    
+            fullTypingText = fullText; 
+            typingIndex = 0; 
+            isTyping = true;   
 
-            btnSend.Enabled = false;  //disable the send button while typing so messages don't pile up
-            txtInput.Enabled = false;  //disable the input box while the bot is typing
-            typingTimer.Start();       //start the timer - TypingTimer_Tick will do the rest
+            btnSend.Enabled = false;  
+            txtInput.Enabled = false;  
+            typingTimer.Start();       
         }
 
         private void AddBotMessage(string message) //adds a bot message to the left side and starts typing it out
         {
-            //name label - small bold label showing "Cypherr" above the message
             Label nameLabel = new Label();
             nameLabel.Text = "Cypherr";
             nameLabel.Font = new Font("Segoe UI", 8f, FontStyle.Bold);
@@ -140,45 +141,42 @@ namespace ST10475262_POE_PART_2
             nameLabel.AutoSize = true;
             nameLabel.Margin = new Padding(4, 6, 4, 0); //a little space above each message
 
-            //message label - starts empty, typing timer fills it in character by character
             Label messageLabel = new Label();
-            messageLabel.Text = "";                              //empty to start - typing effect will fill this
+            messageLabel.Text = "";
             messageLabel.Font = new Font("Segoe UI", 10f);
             messageLabel.ForeColor = Color.FromArgb(56, 189, 248); //cyan text for bot messages
             messageLabel.AutoSize = true;
             messageLabel.MaximumSize = new Size(panelDisplay.ClientSize.Width - 40, 0); //limit width to roughly half the panel
             messageLabel.Margin = new Padding(4, 0, 4, 4);
 
-            panelDisplay.Controls.Add(nameLabel);    //add name label to the flow panel
-            panelDisplay.Controls.Add(messageLabel); //add message label to the flow panel
+            panelDisplay.Controls.Add(nameLabel);    
+            panelDisplay.Controls.Add(messageLabel); 
             ScrollToBottom();
 
             StartTypingEffect(messageLabel, message); //start typing the response into this label character by character
         }
 
-        private void AskForName() //asks the user to enter their name - called automatically after welcome finishes
+        private void AskForName() //asks the user to enter their name
         {
-            waitingForName = true;  //the next input from the user will be treated as their name
-            startupDone = false; //normal chat hasn't started yet
+            waitingForName = true;  
+            startupDone = false; 
 
-            txtInput.Enabled = true; //enable input so the user can type their name
+            txtInput.Enabled = true; 
             btnSend.Enabled = true;
             txtInput.Focus();
 
-            AddBotMessage("Before we begin, what is your name?"); //type the name prompt with the typing effect
+            AddBotMessage("Before we begin, what is your name?"); 
         }
 
 
-        private void AddUserMessage(string message) //adds a user message to the right side instantly
+        private void AddUserMessage(string message) 
         {
-            //get the remembered name for the label, fall back to "You" if not stored yet
-            string displayName = "You";
+            string displayName = "User";
             if (RobotResponses.memory.ContainsKey("name"))
             {
-                displayName = RobotResponses.memory["name"]; //use the name we stored in memory
+                displayName = RobotResponses.memory["name"]; 
             }
 
-            //name label
             Label nameLabel = new Label();
             nameLabel.Text = displayName;
             nameLabel.Font = new Font("Segoe UI", 8f, FontStyle.Bold);
@@ -186,7 +184,6 @@ namespace ST10475262_POE_PART_2
             nameLabel.AutoSize = true;
             nameLabel.Margin = new Padding(4, 6, 4, 0);
 
-            //message label - shown immediately with no typing effect
             Label messageLabel = new Label();
             messageLabel.Text = message;
             messageLabel.Font = new Font("Segoe UI", 10f);
@@ -195,7 +192,7 @@ namespace ST10475262_POE_PART_2
             messageLabel.MaximumSize = new Size(panelDisplay.ClientSize.Width - 40, 0);
             messageLabel.Margin = new Padding(4, 0, 4, 4);
 
-            panelDisplay.Controls.Add(nameLabel);    //add to the flow panel
+            panelDisplay.Controls.Add(nameLabel);    
             panelDisplay.Controls.Add(messageLabel);
             ScrollToBottom();
         }
@@ -231,6 +228,54 @@ namespace ST10475262_POE_PART_2
             }
         }
 
+        private void HandleReminder(string input)
+        {
+            input = input.ToLower();
+
+            DateTime reminderDate;
+
+            // Actual date entered by user
+            if (DateTime.TryParse(input, out reminderDate))
+            {
+                db.UpdateReminder(lastTaskId, reminderDate);
+
+                waitingForReminder = false;
+
+                AddBotMessage(
+                    $"Reminder set for {reminderDate:dd MMM yyyy}");
+
+                return;
+            }
+
+            // Relative dates
+            if (input.Contains("tomorrow"))
+            {
+                reminderDate = DateTime.Today.AddDays(1);
+            }
+            else if (input.Contains("3 day"))
+            {
+                reminderDate = DateTime.Today.AddDays(3);
+            }
+            else if (input.Contains("7 day"))
+            {
+                reminderDate = DateTime.Today.AddDays(7);
+            }
+            else
+            {
+                waitingForReminder = false;
+
+                AddBotMessage("No reminder was set.");
+
+                return;
+            }
+
+            db.UpdateReminder(lastTaskId, reminderDate);
+
+            waitingForReminder = false;
+
+            AddBotMessage(
+                $"Reminder set for {reminderDate:dd MMM yyyy}");
+        }
         private void Form1_Load(object sender, EventArgs e)
         {
 
@@ -239,14 +284,20 @@ namespace ST10475262_POE_PART_2
         private void button1_Click(object sender, EventArgs e)
         {
 
-            string userInput = txtInput.Text.Trim(); //get the text from the input box and remove extra spaces
+            string userInput = txtInput.Text.Trim();
 
+            if (waitingForReminder)
+            {
+                HandleReminder(userInput);
+                return;
+            }
 
             if (waitingForName)
             {
                 AddUserMessage(userInput);
                 txtInput.Clear();
 
+                
                 string response = RobotResponses.RememberName(userInput);
 
                 waitingForName = false;
@@ -254,26 +305,68 @@ namespace ST10475262_POE_PART_2
 
                 //AddBotMessage(response);
 
-                // OPTIONAL: re-introduce purpose/help after name
                 AddBotMessage($"Hi {userInput}, I can help you learn about cybersecurity. Try asking 'what can you do' or 'help'.");
 
                 return;
             }
 
 
-            if (userInput == "") //if the user sent nothing, do nothing
+            if (userInput == "") 
             {
                 return;
             }
 
-            AddUserMessage(userInput); //display the user's message on the RIGHT side of the chat
-            txtInput.Clear();          //clear the input box after sending
+            AddUserMessage(userInput); 
+            txtInput.Clear();
 
-            string botResponse = ""; //will hold the bot's response
+            //display tasks
+            if (userInput.ToLower() == "show tasks")
+            {
+                List<TaskItem> tasks = db.GetTasks();
 
-            // Loop through every delegate in our list and call it with the user's input.
-            // If a method returns a non-empty string, it means it matched - use that response and stop.
-            string lowercaseInput = userInput.ToLower(); //convert input to lowercase so keywords match regardless of capitalisation
+                string output = "Your Tasks:\n\n";
+
+                foreach (TaskItem task in tasks)
+                {
+                    output = output + $"{task.Id}. {task.Title}";
+
+                    if (task.ReminderDate != null)
+                    {
+                        output = output + $"Reminder: {task.ReminderDate:dd MMM yyyy}";
+                    }
+
+                    output = output + "\n";
+                }
+
+                AddBotMessage(output);
+                return;
+            }
+
+            //add tasks
+            if (userInput.ToLower().StartsWith("add task"))
+            {
+                string taskTitle = userInput.Substring(8).Trim();
+
+                TaskItem task = new TaskItem();
+
+                task.Title = taskTitle;
+                task.Description = taskTitle;
+                task.IsCompleted = false;
+                task.ReminderDate = null;
+
+                lastTaskId = db.AddTask(task);
+
+                waitingForReminder = true;
+
+                AddBotMessage($"Task added: {taskTitle}\n\n" + "Would you like a reminder?");
+
+                return;
+            }
+
+
+            string botResponse = "";
+
+            string lowercaseInput = userInput.ToLower(); 
 
             string sentiment = RobotResponses.DetectSentiment(lowercaseInput);
 
@@ -302,23 +395,21 @@ namespace ST10475262_POE_PART_2
                 botResponse = sentiment + botResponse;
             }
 
-            //if none of the methods matched, use the default response
             if (botResponse == "")
             {
-                botResponse = RobotResponses.DefaultResponse(); //call the default/fallback response
+                botResponse = RobotResponses.DefaultResponse(); //call the default response
             }
 
-            //check if the response starts with "EXIT|" which means the user wants to quit
             if (botResponse.StartsWith("EXIT|"))
             {
                 string goodbyeMessage = botResponse.Replace("EXIT|", ""); //remove the EXIT| prefix
-                AddBotMessage(goodbyeMessage); //show the goodbye message
-                txtInput.Enabled = false;   //disable the input box so the user can't type anymore
-                btnSend.Enabled = false;    //disable the send button
+                AddBotMessage(goodbyeMessage); 
+                txtInput.Enabled = false;   
+                btnSend.Enabled = false;    
             }
             else
             {
-                AddBotMessage(botResponse); //display the bot's response on the LEFT side of the chat
+                AddBotMessage(botResponse); 
             }
         }
 
@@ -341,8 +432,8 @@ namespace ST10475262_POE_PART_2
         {
             if (e.KeyCode == Keys.Enter) //if the key pressed was Enter
             {
-                e.SuppressKeyPress = true; //suppress the ding sound that TextBox makes on Enter
-                button1_Click(sender, e);  //treat it exactly the same as clicking the Send button
+                e.SuppressKeyPress = true; 
+                button1_Click(sender, e); 
             }
         }
     }
