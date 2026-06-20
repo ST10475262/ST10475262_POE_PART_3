@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="PART_3_DATABASE/PART_3_DATABASE.sqlproj" Id="026f1596-000d-4e21-be9e-6b846329f170">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="ST10475262_POE_PART_2/ST10475262_POE_PART_2.csproj" />
+</Solution>
