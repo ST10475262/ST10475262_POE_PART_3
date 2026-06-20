@@ -4,6 +4,7 @@ namespace ST10475262_POE_PART_2
 {
     public partial class Form1 : Form
     {
+        TasksDatabase db = new TasksDatabase();
 
         List<ResponseDelegate> responseHandlers = new List<ResponseDelegate>(); //list of delegates pointing to all our response methods
 
@@ -30,7 +31,7 @@ namespace ST10475262_POE_PART_2
             ShowWelcomeMessage();  //display the welcome message then prompt for name
         }
 
-        TasksDatabase db = new TasksDatabase();
+        
         
 
         private void SetupDelegateList()
