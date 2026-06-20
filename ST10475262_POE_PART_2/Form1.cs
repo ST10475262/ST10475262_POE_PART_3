@@ -34,20 +34,16 @@ namespace ST10475262_POE_PART_2
         
         public void test()
         {
-            TaskItem task = new TaskItem();
+            List<TaskItem> tasks = db.GetTasks();
 
-            task.Title = "Test Task";
+            string output = "";
 
-            task.Description =
-                "Testing from WinForms";
+            foreach (TaskItem task in tasks)
+            {
+                output += task.Title + "\n";
+            }
 
-            task.ReminderDate = null;
-
-            task.IsCompleted = false;
-
-            db.AddTask(task);
-
-            MessageBox.Show("Task Added");
+            MessageBox.Show(output);
         }
 
         private void SetupDelegateList()

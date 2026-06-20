@@ -29,5 +29,43 @@ namespace ST10475262_POE_PART_2
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public List<TaskItem> GetTasks()//uses list to avoid tasks overwriting one another
+        {
+            List<TaskItem> tasks = new List<TaskItem>();//uses list instead of arrays to avoid a fixed size
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = "SELECT * FROM Task";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    TaskItem task = new TaskItem();
+
+                    task.Id = Convert.ToInt32(reader["Id"]);
+
+                    task.Title = reader["Title"].ToString();
+
+                    task.Description = reader["Description"].ToString();
+
+                    if (reader["ReminderDate"] != DBNull.Value)
+                    {
+                        task.ReminderDate = Convert.ToDateTime(reader["ReminderDate"]);
+                    }
+
+                    task.IsCompleted = Convert.ToBoolean(reader["IsCompleted"]);
+
+                    tasks.Add(task);
+                }
+            }
+
+            return tasks;
+        }
     }
 }
