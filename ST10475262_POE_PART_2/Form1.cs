@@ -34,21 +34,6 @@ namespace ST10475262_POE_PART_2
             ShowWelcomeMessage();  //display the welcome message then prompt for name
         }
 
-        
-        public void test()
-        {
-            List<TaskItem> tasks = db.GetTasks();
-
-            string output = "";
-
-            foreach (TaskItem task in tasks)
-            {
-                output += task.Title + "\n";
-            }
-
-            MessageBox.Show(output);
-        }
-
         private void SetupDelegateList()
         {
             responseHandlers.Add(RobotResponses.DetectSentiment);
@@ -260,7 +245,7 @@ namespace ST10475262_POE_PART_2
             }
 
             db.UpdateReminder(lastTaskId, reminderDate);
-
+            ActivityLogger.Add($"Reminder set for Task #{lastTaskId} on {reminderDate:dd MMM yyyy}");
             waitingForReminder = false;
 
             AddBotMessage(
@@ -276,8 +261,15 @@ namespace ST10475262_POE_PART_2
         {
             string userInput = txtInput.Text.Trim();
 
-            AddUserMessage(userInput); 
-            txtInput.Clear();
+            if (waitingForReminder)
+            {
+                AddUserMessage(userInput);
+                txtInput.Clear();
+
+                HandleReminder(userInput);
+
+                return;
+            }
 
             string botResponse = "";
             string lowercaseInput = userInput.ToLower(); 
@@ -373,6 +365,7 @@ namespace ST10475262_POE_PART_2
                 task.ReminderDate = null;
 
                 lastTaskId = db.AddTask(task);
+                ActivityLogger.Add($"Task added: {task.Title}");
 
                 waitingForReminder = true;
 
@@ -387,6 +380,7 @@ namespace ST10475262_POE_PART_2
                 int id = Convert.ToInt32(userInput.Replace("complete task", ""));
 
                 db.CompleteTask(id);
+                ActivityLogger.Add($"Completed Task #{id}");
 
                 AddBotMessage($"Task {id} marked as completed.");
 
@@ -399,8 +393,33 @@ namespace ST10475262_POE_PART_2
                 int id = Convert.ToInt32(userInput.Replace("delete task", ""));
 
                 db.DeleteTask(id);
+                ActivityLogger.Add($"Deleted Task #{id}");
 
                 AddBotMessage($"Task {id} deleted.");
+
+                return true;
+            }
+
+            //show logs
+            if (userInput.ToLower() == "show activity log" || userInput.ToLower() == "what have you done for me?")
+            {
+                List<string> logs = ActivityLogger.GetRecent();
+
+                if (logs.Count == 0)
+                {
+                    AddBotMessage("No activity has been recorded yet.");
+
+                    return true;
+                }
+
+                string output ="Here's a summary of recent actions:\n\n";
+
+                foreach (string log in logs)
+                {
+                    output += "- " + log + "\n";
+                }
+
+                AddBotMessage(output);
 
                 return true;
             }
