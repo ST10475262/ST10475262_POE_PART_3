@@ -217,8 +217,9 @@ namespace ST10475262_POE_PART_2
         private void HandleReminder(string input)
         {
             input = input.ToLower();
-
             DateTime reminderDate;
+
+            DateTime.TryParse(input,System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out reminderDate);
 
             if (DateTime.TryParse(input, out reminderDate))
             {
@@ -367,7 +368,7 @@ namespace ST10475262_POE_PART_2
             //add tasks
             if (userInput.ToLower().StartsWith("add task"))
             {
-                string taskData = userInput.Substring(8).Trim();
+                string taskData = userInput.Substring("add task".Length).Trim();
 
                 string[] parts = taskData.Split(':');
 
@@ -420,18 +421,50 @@ namespace ST10475262_POE_PART_2
                 return true;
             }
 
+            //show tasks
+            if (userInput.ToLower().StartsWith("show tasks") || userInput.ToLower() == "view tasks")
+            {
+                List<TaskItem> tasks = db.GetTasks();
+
+                if (tasks.Count == 0)
+                {
+                    AddBotMessage("You have no tasks yet.");
+                    return true;
+                }
+
+                string output = "Here are your tasks:\n\n";
+
+                foreach (TaskItem task in tasks)
+                {
+                    string status = task.IsCompleted ? "Completed" : "Pending";
+
+                    output += $"#{task.Id} - {task.Title}\n" +
+                              $"Description: {task.Description}\n" +
+                              $"Status: {status}\n";
+
+                    if (task.ReminderDate != null)
+                        output += $"Reminder: {task.ReminderDate:dd MMM yyyy}\n";
+
+                    output += "\n";
+                }
+
+                AddBotMessage(output);
+
+                return true;
+            }
+
             //delete tasks
             if (userInput.ToLower().StartsWith("delete task"))
             {
-                string idText = userInput.Replace("complete task", "").Trim();
+                string idText = userInput.Replace("delete task", "").Trim();
 
                 if (int.TryParse(idText, out int id))
                 {
-                    db.CompleteTask(id);
+                    db.DeleteTask(id); // <-- you need this method in DB
 
-                    ActivityLogger.Add($"Completed Task #{id}");
+                    ActivityLogger.Add($"Deleted Task #{id}");
 
-                    AddBotMessage($"Task {id} marked as completed.");
+                    AddBotMessage($"Task {id} has been deleted.");
                 }
                 else
                 {
