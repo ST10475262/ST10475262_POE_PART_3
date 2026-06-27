@@ -92,5 +92,39 @@ namespace ST10475262_POE_PART_2
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public void CompleteTask(int taskId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"UPDATE Task
+                                 SET IsCompleted = 1
+                                 WHERE Id = @Id";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+
+                cmd.Parameters.AddWithValue("@Id", taskId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void DeleteTask(int taskId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = "DELETE FROM Task WHERE Id=@Id";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+
+                cmd.Parameters.AddWithValue("@Id", taskId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }

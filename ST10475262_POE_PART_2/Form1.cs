@@ -8,6 +8,7 @@ namespace ST10475262_POE_PART_2
         //remembering the tasks added
         bool waitingForReminder = false;
         int lastTaskId = -1;
+        
 
         List<ResponseDelegate> responseHandlers = new List<ResponseDelegate>(); 
 
@@ -29,7 +30,7 @@ namespace ST10475262_POE_PART_2
             InitializeComponent();
             SetupDelegateList();   //fill the delegate list with all topic methods
             SetupTypingTimer();    //configure the typing timer
-            PlayStartupSound();    //play  cypherr.wav
+            //PlayStartupSound();    //play  cypherr.wav
             ShowWelcomeMessage();  //display the welcome message then prompt for name
         }
 
@@ -234,21 +235,10 @@ namespace ST10475262_POE_PART_2
 
             DateTime reminderDate;
 
-            // Actual date entered by user
             if (DateTime.TryParse(input, out reminderDate))
             {
-                db.UpdateReminder(lastTaskId, reminderDate);
-
-                waitingForReminder = false;
-
-                AddBotMessage(
-                    $"Reminder set for {reminderDate:dd MMM yyyy}");
-
-                return;
             }
-
-            // Relative dates
-            if (input.Contains("tomorrow"))
+            else if (input.Contains("tomorrow"))
             {
                 reminderDate = DateTime.Today.AddDays(1);
             }
@@ -276,6 +266,7 @@ namespace ST10475262_POE_PART_2
             AddBotMessage(
                 $"Reminder set for {reminderDate:dd MMM yyyy}");
         }
+
         private void Form1_Load(object sender, EventArgs e)
         {
 
@@ -283,93 +274,14 @@ namespace ST10475262_POE_PART_2
 
         private void button1_Click(object sender, EventArgs e)
         {
-
             string userInput = txtInput.Text.Trim();
-
-            if (waitingForReminder)
-            {
-                HandleReminder(userInput);
-                return;
-            }
-
-            if (waitingForName)
-            {
-                AddUserMessage(userInput);
-                txtInput.Clear();
-
-                
-                string response = RobotResponses.RememberName(userInput);
-
-                waitingForName = false;
-                startupDone = true;
-
-                //AddBotMessage(response);
-
-                AddBotMessage($"Hi {userInput}, I can help you learn about cybersecurity. Try asking 'what can you do' or 'help'.");
-
-                return;
-            }
-
-
-            if (userInput == "") 
-            {
-                return;
-            }
 
             AddUserMessage(userInput); 
             txtInput.Clear();
 
-            //display tasks
-            if (userInput.ToLower() == "show tasks")
-            {
-                List<TaskItem> tasks = db.GetTasks();
-
-                string output = "Your Tasks:\n\n";
-
-                foreach (TaskItem task in tasks)
-                {
-                    output = output + $"{task.Id}. {task.Title}";
-
-                    if (task.ReminderDate != null)
-                    {
-                        output = output + $"Reminder: {task.ReminderDate:dd MMM yyyy}";
-                    }
-
-                    output = output + "\n";
-                }
-
-                AddBotMessage(output);
-                return;
-            }
-
-            //add tasks
-            if (userInput.ToLower().StartsWith("add task"))
-            {
-                string taskTitle = userInput.Substring(8).Trim();
-
-                TaskItem task = new TaskItem();
-
-                task.Title = taskTitle;
-                task.Description = taskTitle;
-                task.IsCompleted = false;
-                task.ReminderDate = null;
-
-                lastTaskId = db.AddTask(task);
-
-                waitingForReminder = true;
-
-                AddBotMessage($"Task added: {taskTitle}\n\n" + "Would you like a reminder?");
-
-                return;
-            }
-
-
             string botResponse = "";
-
             string lowercaseInput = userInput.ToLower(); 
-
             string sentiment = RobotResponses.DetectSentiment(lowercaseInput);
-
 
             foreach (ResponseDelegate handler in responseHandlers)
             {
@@ -400,6 +312,11 @@ namespace ST10475262_POE_PART_2
                 botResponse = RobotResponses.DefaultResponse(); //call the default response
             }
 
+            if (HandleTaskCommands(userInput))
+            {
+                return;
+            }
+
             if (botResponse.StartsWith("EXIT|"))
             {
                 string goodbyeMessage = botResponse.Replace("EXIT|", ""); //remove the EXIT| prefix
@@ -426,6 +343,68 @@ namespace ST10475262_POE_PART_2
         private void txtInput_Enter(object sender, EventArgs e)
         {
 
+        }
+
+        private bool HandleTaskCommands(string userInput)
+        {
+            //add tasks
+            if (userInput.ToLower().StartsWith("add task"))
+            {
+                string taskData = userInput.Substring(8).Trim();
+
+                string[] parts = taskData.Split(':');
+
+                if (parts.Length < 2)
+                {
+                    AddBotMessage("Please use:\n\n" +
+                                  "add task Title : Description");
+
+                    return true;
+                }
+
+                TaskItem task = new TaskItem();
+
+                task.Title = parts[0].Trim();
+
+                task.Description = parts[1].Trim();
+
+                task.IsCompleted = false;
+
+                task.ReminderDate = null;
+
+                lastTaskId = db.AddTask(task);
+
+                waitingForReminder = true;
+
+                AddBotMessage("Task added successfully.\n\nWould you like a reminder?");
+
+                return true;
+            }
+
+            //complete tasks
+            if (userInput.ToLower().StartsWith("complete task"))
+            {
+                int id = Convert.ToInt32(userInput.Replace("complete task", ""));
+
+                db.CompleteTask(id);
+
+                AddBotMessage($"Task {id} marked as completed.");
+
+                return true;
+            }
+
+            //delete tasks
+            if (userInput.ToLower().StartsWith("delete task"))
+            {
+                int id = Convert.ToInt32(userInput.Replace("delete task", ""));
+
+                db.DeleteTask(id);
+
+                AddBotMessage($"Task {id} deleted.");
+
+                return true;
+            }
+            return false;
         }
 
         private void txtInput_KeyDown(object sender, KeyEventArgs e)
