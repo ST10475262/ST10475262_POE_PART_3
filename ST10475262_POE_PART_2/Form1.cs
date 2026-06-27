@@ -373,7 +373,7 @@ namespace ST10475262_POE_PART_2
             //add tasks
             if (NLP.IsAddTask(userInput))
             {
-                string taskData = userInput.Substring("add task".Length).Trim();
+                string taskData = userInput.ToLower().Replace("add task", "").Replace("create task", "").Replace("new task", "").Trim();
 
                 string[] parts = taskData.Split(':');
 
@@ -443,9 +443,9 @@ namespace ST10475262_POE_PART_2
                 {
                     string status = task.IsCompleted ? "Completed" : "Pending";
 
-                    output += $"#{task.Id} - {task.Title}\n" +
-                              $"Description: {task.Description}\n" +
-                              $"Status: {status}\n";
+                    output += $"#{task.Id} Task: {task.Title}\n" +
+                              $"     Description: {task.Description}\n" +
+                              $"     Status: {status}\n";
 
                     if (task.ReminderDate != null)
                         output += $"Reminder: {task.ReminderDate:dd MMM yyyy}\n";
