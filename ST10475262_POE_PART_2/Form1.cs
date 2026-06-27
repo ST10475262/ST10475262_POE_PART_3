@@ -248,8 +248,7 @@ namespace ST10475262_POE_PART_2
             ActivityLogger.Add($"Reminder set for Task #{lastTaskId} on {reminderDate:dd MMM yyyy}");
             waitingForReminder = false;
 
-            AddBotMessage(
-                $"Reminder set for {reminderDate:dd MMM yyyy}");
+            AddBotMessage($"Reminder set for {reminderDate:dd MMM yyyy}");
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -260,6 +259,32 @@ namespace ST10475262_POE_PART_2
         private void button1_Click(object sender, EventArgs e)
         {
             string userInput = txtInput.Text.Trim();
+
+            if (waitingForName)
+            {
+                AddUserMessage(userInput);
+                txtInput.Clear();
+
+                RobotResponses.RememberName(userInput);
+
+                waitingForName = false;
+                startupDone = true;
+
+                AddBotMessage($"Hi { userInput}, I can help you learn about cybersecurity.Try asking 'what can you do' or 'help'.");
+
+
+                return;
+            }
+
+            // Empty message
+            if (userInput == "")
+            {
+                return;
+            }
+
+            // Display user's message
+            AddUserMessage(userInput);
+            txtInput.Clear();
 
             if (waitingForReminder)
             {
@@ -377,12 +402,20 @@ namespace ST10475262_POE_PART_2
             //complete tasks
             if (userInput.ToLower().StartsWith("complete task"))
             {
-                int id = Convert.ToInt32(userInput.Replace("complete task", ""));
+                string idText = userInput.Replace("complete task", "").Trim();
 
-                db.CompleteTask(id);
-                ActivityLogger.Add($"Completed Task #{id}");
+                if (int.TryParse(idText, out int id))
+                {
+                    db.CompleteTask(id);
 
-                AddBotMessage($"Task {id} marked as completed.");
+                    ActivityLogger.Add($"Completed Task #{id}");
+
+                    AddBotMessage($"Task {id} marked as completed.");
+                }
+                else
+                {
+                    AddBotMessage("Please enter a valid task number.");
+                }
 
                 return true;
             }
@@ -390,12 +423,20 @@ namespace ST10475262_POE_PART_2
             //delete tasks
             if (userInput.ToLower().StartsWith("delete task"))
             {
-                int id = Convert.ToInt32(userInput.Replace("delete task", ""));
+                string idText = userInput.Replace("complete task", "").Trim();
 
-                db.DeleteTask(id);
-                ActivityLogger.Add($"Deleted Task #{id}");
+                if (int.TryParse(idText, out int id))
+                {
+                    db.CompleteTask(id);
 
-                AddBotMessage($"Task {id} deleted.");
+                    ActivityLogger.Add($"Completed Task #{id}");
+
+                    AddBotMessage($"Task {id} marked as completed.");
+                }
+                else
+                {
+                    AddBotMessage("Please enter a valid task number.");
+                }
 
                 return true;
             }
