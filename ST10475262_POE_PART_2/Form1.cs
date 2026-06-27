@@ -31,7 +31,7 @@ namespace ST10475262_POE_PART_2
             InitializeComponent();
             SetupDelegateList();   //fill the delegate list with all topic methods
             SetupTypingTimer();    //configure the typing timer
-            //PlayStartupSound();    //play  cypherr.wav
+            PlayStartupSound();    //play  cypherr.wav
             ShowWelcomeMessage();  //display the welcome message then prompt for name
         }
 
