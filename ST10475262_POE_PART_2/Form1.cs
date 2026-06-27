@@ -8,7 +8,8 @@ namespace ST10475262_POE_PART_2
         //remembering the tasks added
         bool waitingForReminder = false;
         int lastTaskId = -1;
-        
+
+        QuizManager quiz = new QuizManager();
 
         List<ResponseDelegate> responseHandlers = new List<ResponseDelegate>(); 
 
@@ -287,11 +288,15 @@ namespace ST10475262_POE_PART_2
             AddUserMessage(userInput);
             txtInput.Clear();
 
+            if (quiz.IsQuizRunning)
+            {
+                AddBotMessage(quiz.ProcessAnswer(userInput));
+
+                return;
+            }
+
             if (waitingForReminder)
             {
-                AddUserMessage(userInput);
-                txtInput.Clear();
-
                 HandleReminder(userInput);
 
                 return;
@@ -494,6 +499,14 @@ namespace ST10475262_POE_PART_2
                 }
 
                 AddBotMessage(output);
+
+                return true;
+            }
+
+            //start quiz
+            if (userInput.ToLower() == "start quiz")
+            {
+                AddBotMessage(quiz.StartQuiz());
 
                 return true;
             }

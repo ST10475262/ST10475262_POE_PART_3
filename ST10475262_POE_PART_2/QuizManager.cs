@@ -154,7 +154,7 @@ namespace ST10475262_POE_PART_2
         {
             QuizQuestion q = questions[currentQuestion];
 
-            string output = $"Question {currentQuestion + 1} of {questions}\n\n";
+            string output = $"Question {currentQuestion + 1} of 12\n\n";
 
             output += q.Question + "\n\n";
 
