@@ -371,7 +371,7 @@ namespace ST10475262_POE_PART_2
         private bool HandleTaskCommands(string userInput)
         {
             //add tasks
-            if (userInput.ToLower().StartsWith("add task"))
+            if (NLP.IsAddTask(userInput))
             {
                 string taskData = userInput.Substring("add task".Length).Trim();
 
@@ -406,7 +406,7 @@ namespace ST10475262_POE_PART_2
             }
 
             //complete tasks
-            if (userInput.ToLower().StartsWith("complete task"))
+            if (NLP.IsCompleted(userInput))
             {
                 string idText = userInput.Replace("complete task", "").Trim();
 
@@ -427,7 +427,7 @@ namespace ST10475262_POE_PART_2
             }
 
             //show tasks
-            if (userInput.ToLower().StartsWith("show tasks") || userInput.ToLower() == "view tasks")
+            if (NLP.IsShowTasks(userInput))
             {
                 List<TaskItem> tasks = db.GetTasks();
 
@@ -459,7 +459,7 @@ namespace ST10475262_POE_PART_2
             }
 
             //delete tasks
-            if (userInput.ToLower().StartsWith("delete task"))
+            if (NLP.DeleteTasks(userInput))
             {
                 string idText = userInput.Replace("delete task", "").Trim();
 
@@ -480,7 +480,7 @@ namespace ST10475262_POE_PART_2
             }
 
             //show logs
-            if (userInput.ToLower() == "show activity log" || userInput.ToLower() == "what have you done for me?")
+            if (NLP.IsActivityLog(userInput))
             {
                 List<string> logs = ActivityLogger.GetRecent();
 
@@ -504,7 +504,7 @@ namespace ST10475262_POE_PART_2
             }
 
             //start quiz
-            if (userInput.ToLower() == "start quiz")
+            if (NLP.IsStartQuiz(userInput))
             {
                 AddBotMessage(quiz.StartQuiz());
 

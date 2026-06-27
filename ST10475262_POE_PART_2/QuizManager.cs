@@ -81,10 +81,10 @@ namespace ST10475262_POE_PART_2
 
             questions.Add(new QuizQuestion()
             {
-                Question = "Social engineering attacks don't rely on manipulating people rather than exploiting software.",
+                Question = "Social engineering attacks rely on manipulating people rather than exploiting software.",
                 Options = new string[]{ "A. True\n",
                                         "B. False"},
-                CorrectAnswer = 'B'
+                CorrectAnswer = 'A'
             });
 
             questions.Add(new QuizQuestion()
@@ -99,7 +99,7 @@ namespace ST10475262_POE_PART_2
 
             questions.Add(new QuizQuestion()
             {
-                Question = "What should you do before clicking a linak in an email?",
+                Question = "What should you do before clicking a link in an email?",
                 Options = new string[]{ "A. Click it immediately\n",
                                         "B. Check who sent the email and inspect the link\n",
                                         "C. Forward it to everyone\n",
@@ -163,7 +163,7 @@ namespace ST10475262_POE_PART_2
                 output += option + "\n";
             }
 
-            output += "\nType A, B, C or D";
+            output += "\nType your answer: ";
 
             return output;
         }
@@ -175,6 +175,11 @@ namespace ST10475262_POE_PART_2
             if (answer.Length == 0) return "Please enter A, B, C or D.";
 
             char userAnswer = answer[0];
+
+            if (userAnswer != 'A' && userAnswer != 'B' && userAnswer != 'C' && userAnswer != 'D')
+            {
+                return "Please enter A, B, C or D.";
+            }
 
             QuizQuestion q = questions[currentQuestion];
 
