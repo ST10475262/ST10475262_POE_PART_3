@@ -460,7 +460,7 @@ namespace ST10475262_POE_PART_2
 
                 if (int.TryParse(idText, out int id))
                 {
-                    db.DeleteTask(id); // <-- you need this method in DB
+                    db.DeleteTask(id);
 
                     ActivityLogger.Add($"Deleted Task #{id}");
 
